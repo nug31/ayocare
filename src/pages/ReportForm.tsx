@@ -540,25 +540,25 @@ export default function ReportForm() {
       {/* Camera Modal */}
       {showCamera && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Ambil Foto</h3>
+          <div className="bg-white rounded-xl max-w-2xl w-full p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">Ambil Foto</h3>
               <button
                 onClick={closeCamera}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-7 w-7" />
               </button>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* Video Preview */}
               <div className="relative bg-gray-900 rounded-lg overflow-hidden">
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
-                  className="w-full h-64 object-cover"
+                  className="w-full h-80 md:h-96 object-cover"
                   onLoadedMetadata={() => {
                     if (videoRef.current) {
                       videoRef.current.play();
@@ -588,23 +588,23 @@ export default function ReportForm() {
               </div>
               
               {/* Controls */}
-              <div className="flex justify-center space-x-4">
+              <div className="flex justify-center space-x-6">
                 <button
                   onClick={closeCamera}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-6 py-3 text-base border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors min-w-[100px]"
                 >
                   Batal
                 </button>
                 <button
                   onClick={takePhoto}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  className="px-8 py-3 text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 min-w-[140px] justify-center"
                 >
-                  <CameraIcon className="h-5 w-5" />
+                  <CameraIcon className="h-6 w-6" />
                   <span>Ambil Foto</span>
                 </button>
               </div>
               
-              <p className="text-xs text-gray-500 text-center">
+              <p className="text-sm text-gray-600 text-center font-medium">
                 Arahkan kamera ke objek yang ingin difoto, lalu klik "Ambil Foto"
               </p>
             </div>
