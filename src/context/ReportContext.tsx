@@ -37,10 +37,10 @@ const initialState: ReportState = {
   reports: [
     {
       id: '1',
-      title: 'Mesin Bubut Tidak Normal',
-      location: 'Bengkel Mesin',
-      category: 'workshop-machine',
-      description: 'Suara mesin bubut sangat berisik dan bergetar tidak normal. Kemungkinan ada masalah pada bearing. Saya khawatir ini berbahaya untuk siswa yang praktikum.',
+      title: 'Kran Toilet Tidak Berfungsi',
+      location: 'Toilet Lantai 2',
+      category: 'toilet',
+      description: 'Kran air di toilet lantai 2 tidak mengeluarkan air sama sekali. Sudah beberapa hari tidak berfungsi dan mengganggu aktivitas siswa. Perlu segera diperbaiki.',
       priority: 'high',
       reporterName: 'Ahmad Rizki',
       reporterPosition: 'Guru Teknik Mesin',
@@ -52,8 +52,8 @@ const initialState: ReportState = {
     {
       id: '2',
       title: 'Kabel Listrik Terkelupas',
-      location: 'Laboratorium Elektronika',
-      category: 'laboratory',
+      location: 'Workshop ELIND',
+      category: 'workshop-elind',
       description: 'Ditemukan kabel listrik dengan isolasi terkelupas di dekat meja praktikum. Sangat berbahaya untuk keselamatan siswa. Perlu segera diperbaiki.',
       priority: 'emergency',
       reporterName: 'Siti Nurhaliza',
@@ -67,8 +67,8 @@ const initialState: ReportState = {
     {
       id: '3',
       title: 'Lantai Licin di Area Kerja',
-      location: 'Bengkel Otomotif',
-      category: 'workshop-automotive',
+      location: 'Workshop TKR',
+      category: 'workshop-tkr',
       description: 'Lantai bengkel sangat licin akibat tumpahan oli. Sudah beberapa siswa hampir terpeleset. Perlu segera dibersihkan untuk mencegah kecelakaan.',
       priority: 'medium',
       reporterName: 'Budi Santoso',
