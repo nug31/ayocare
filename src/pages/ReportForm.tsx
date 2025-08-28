@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CameraIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { CameraIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useReports } from '../context/ReportContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -32,6 +32,10 @@ export default function ReportForm() {
   const { dispatch } = useReports();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -90,6 +94,80 @@ export default function ReportForm() {
       photos: prev.photos.filter((_, i) => i !== index)
     }));
   };
+
+  // Camera functions
+  const openCamera = async () => {
+    if (formData.photos.length >= 5) {
+      alert('Maksimal 5 foto yang dapat diupload');
+      return;
+    }
+
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment', // Use back camera if available
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      });
+      setStream(mediaStream);
+      setShowCamera(true);
+      
+      // Start video stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      alert('Tidak dapat mengakses kamera. Pastikan browser memiliki izin menggunakan kamera.');
+    }
+  };
+
+  const closeCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setShowCamera(false);
+  };
+
+  const takePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      
+      if (context) {
+        // Set canvas size to video size
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Draw video frame to canvas
+        context.drawImage(video, 0, 0);
+        
+        // Convert canvas to data URL
+        const photoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // Add photo to form data
+        setFormData(prev => ({
+          ...prev,
+          photos: [...prev.photos, photoDataUrl]
+        }));
+        
+        // Close camera
+        closeCamera();
+      }
+    }
+  };
+
+  // Cleanup camera stream on component unmount
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [stream]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -281,24 +359,43 @@ export default function ReportForm() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Upload foto kondisi (opsional, maksimal 5 foto)
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                  id="photo-upload"
+              
+              {/* Camera and Upload Options */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Camera Button */}
+                <button
+                  type="button"
+                  onClick={openCamera}
                   disabled={formData.photos.length >= 5}
-                />
-                <label
-                  htmlFor="photo-upload"
-                  className={`cursor-pointer ${formData.photos.length >= 5 ? 'opacity-50' : ''}`}
+                  className={`border-2 border-dashed border-blue-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors bg-blue-50 ${
+                    formData.photos.length >= 5 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                  }`}
                 >
-                  <CameraIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600">Klik untuk upload foto</p>
-                  <p className="text-xs text-gray-500 mt-1">JPG, PNG, maksimal 10MB per foto</p>
-                </label>
+                  <CameraIcon className="h-12 w-12 text-blue-500 mx-auto mb-2" />
+                  <p className="text-blue-700 font-medium">Ambil Foto Langsung</p>
+                  <p className="text-xs text-blue-600 mt-1">Gunakan kamera perangkat</p>
+                </button>
+
+                {/* File Upload */}
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                    id="photo-upload"
+                    disabled={formData.photos.length >= 5}
+                  />
+                  <label
+                    htmlFor="photo-upload"
+                    className={`cursor-pointer ${formData.photos.length >= 5 ? 'opacity-50' : ''}`}
+                  >
+                    <CameraIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-600">Upload dari Galeri</p>
+                    <p className="text-xs text-gray-500 mt-1">JPG, PNG, maksimal 10MB per foto</p>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -395,6 +492,72 @@ export default function ReportForm() {
           </button>
         </div>
       </form>
+
+      {/* Camera Modal */}
+      {showCamera && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Ambil Foto</h3>
+              <button
+                onClick={closeCamera}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Video Preview */}
+              <div className="relative bg-gray-900 rounded-lg overflow-hidden">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-64 object-cover"
+                  onLoadedMetadata={() => {
+                    if (videoRef.current) {
+                      videoRef.current.play();
+                    }
+                  }}
+                />
+                
+                {/* Camera overlay */}
+                <div className="absolute inset-0 border-2 border-white border-opacity-50 m-4 rounded-lg pointer-events-none">
+                  <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-white"></div>
+                  <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-white"></div>
+                  <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-white"></div>
+                  <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-white"></div>
+                </div>
+              </div>
+              
+              {/* Controls */}
+              <div className="flex justify-center space-x-4">
+                <button
+                  onClick={closeCamera}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={takePhoto}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <CameraIcon className="h-5 w-5" />
+                  <span>Ambil Foto</span>
+                </button>
+              </div>
+              
+              <p className="text-xs text-gray-500 text-center">
+                Arahkan kamera ke objek yang ingin difoto, lalu klik "Ambil Foto"
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Hidden canvas for photo capture */}
+      <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 }
