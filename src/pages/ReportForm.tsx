@@ -1,0 +1,400 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CameraIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { useReports } from '../context/ReportContext';
+import { useAuth } from '../context/AuthContext';
+
+const categories = [
+  { value: 'classroom', label: 'Ruang Kelas' },
+  { value: 'workshop-machine', label: 'Bengkel Mesin' },
+  { value: 'workshop-automotive', label: 'Bengkel Otomotif' },
+  { value: 'laboratory', label: 'Laboratorium' },
+  { value: 'workshop-electrical', label: 'Bengkel Elektro' },
+  { value: 'workshop-building', label: 'Bengkel Bangunan' },
+  { value: 'library', label: 'Perpustakaan' },
+  { value: 'canteen', label: 'Kantin' },
+  { value: 'toilet', label: 'Toilet' },
+  { value: 'corridor', label: 'Koridor' },
+  { value: 'yard', label: 'Halaman' },
+  { value: 'parking', label: 'Parkiran' },
+  { value: 'other', label: 'Lainnya' },
+];
+
+const priorities = [
+  { value: 'low', label: 'Rendah', color: 'text-green-600', desc: 'Tidak mengganggu aktivitas' },
+  { value: 'medium', label: 'Sedang', color: 'text-yellow-600', desc: 'Perlu perhatian' },
+  { value: 'high', label: 'Tinggi', color: 'text-orange-600', desc: 'Mengganggu aktivitas' },
+  { value: 'emergency', label: 'Darurat', color: 'text-red-600', desc: 'Berbahaya, butuh tindakan segera' },
+];
+
+export default function ReportForm() {
+  const navigate = useNavigate();
+  const { dispatch } = useReports();
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    location: '',
+    category: '',
+    description: '',
+    priority: 'medium' as 'low' | 'medium' | 'high' | 'emergency',
+    reporterName: '',
+    reporterPosition: '',
+    photos: [] as string[],
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Auto-fill data guru yang sedang login
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        reporterName: user.name,
+        reporterPosition: user.subject ? `Guru ${user.subject}` : 'Guru'
+      }));
+    }
+  }, [user]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const photoUrls: string[] = [];
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result) {
+            photoUrls.push(e.target.result as string);
+            if (photoUrls.length === files.length) {
+              setFormData(prev => ({ ...prev, photos: [...prev.photos, ...photoUrls] }));
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index)
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.title.trim()) newErrors.title = 'Judul laporan wajib diisi';
+    if (!formData.location.trim()) newErrors.location = 'Lokasi wajib diisi';
+    if (!formData.category) newErrors.category = 'Kategori wajib dipilih';
+    if (!formData.description.trim()) newErrors.description = 'Deskripsi wajib diisi';
+    if (!formData.reporterName.trim()) newErrors.reporterName = 'Nama pelapor wajib diisi';
+    if (!formData.reporterPosition.trim()) newErrors.reporterPosition = 'Posisi/Jabatan wajib diisi';
+
+    if (formData.description.length < 20) {
+      newErrors.description = 'Deskripsi minimal 20 karakter';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      dispatch({
+        type: 'ADD_REPORT',
+        payload: formData,
+      });
+
+      // Show success message
+      alert('Laporan berhasil dikirim! Tim akan segera menindaklanjuti.');
+      
+      // Navigate to dashboard
+      navigate('/');
+    } catch (error) {
+      alert('Terjadi kesalahan saat mengirim laporan. Silakan coba lagi.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Buat Laporan Baru</h1>
+        <p className="text-gray-600">
+          Laporkan kondisi abnormal atau berbahaya yang Anda temukan di lingkungan sekolah
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Basic Information */}
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Informasi Dasar</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                Judul Laporan *
+              </label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                  errors.title ? 'border-red-300' : 'border-gray-300'
+                }`}
+                placeholder="Contoh: Mesin Bubut Bergetar Tidak Normal"
+              />
+              {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
+            </div>
+
+            <div>
+              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                Kategori Lokasi *
+              </label>
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                  errors.category ? 'border-red-300' : 'border-gray-300'
+                }`}
+              >
+                <option value="">Pilih kategori...</option>
+                {categories.map(cat => (
+                  <option key={cat.value} value={cat.value}>{cat.label}</option>
+                ))}
+              </select>
+              {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
+            </div>
+
+            <div className="md:col-span-2">
+              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+                Lokasi Spesifik *
+              </label>
+              <input
+                type="text"
+                id="location"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                  errors.location ? 'border-red-300' : 'border-gray-300'
+                }`}
+                placeholder="Contoh: Bengkel Mesin Lantai 2, dekat jendela"
+              />
+              {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location}</p>}
+            </div>
+          </div>
+        </div>
+
+        {/* Priority Level */}
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Tingkat Prioritas</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {priorities.map(priority => (
+              <label
+                key={priority.value}
+                className={`relative border rounded-lg p-4 cursor-pointer transition-all hover:bg-gray-50 ${
+                  formData.priority === priority.value
+                    ? 'border-blue-500 ring-2 ring-blue-200 bg-blue-50'
+                    : 'border-gray-200'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="priority"
+                  value={priority.value}
+                  checked={formData.priority === priority.value}
+                  onChange={handleInputChange}
+                  className="sr-only"
+                />
+                <div className="flex items-center justify-center mb-2">
+                  {priority.value === 'emergency' && (
+                    <ExclamationTriangleIcon className="h-6 w-6 text-red-500" />
+                  )}
+                </div>
+                <h3 className={`font-medium text-center ${priority.color}`}>{priority.label}</h3>
+                <p className="text-xs text-gray-600 text-center mt-1">{priority.desc}</p>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Deskripsi Detail</h2>
+          
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              Jelaskan kondisi yang Anda temukan *
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows={6}
+              value={formData.description}
+              onChange={handleInputChange}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                errors.description ? 'border-red-300' : 'border-gray-300'
+              }`}
+              placeholder="Berikan deskripsi detail tentang kondisi yang Anda temukan, seperti: apa yang terlihat/terdengar, sejak kapan, seberapa sering terjadi, dll."
+            />
+            <div className="flex justify-between mt-1">
+              {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
+              <p className="text-sm text-gray-500">{formData.description.length}/500 karakter</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Photo Upload */}
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Foto Bukti</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Upload foto kondisi (opsional, maksimal 5 foto)
+              </label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                  id="photo-upload"
+                  disabled={formData.photos.length >= 5}
+                />
+                <label
+                  htmlFor="photo-upload"
+                  className={`cursor-pointer ${formData.photos.length >= 5 ? 'opacity-50' : ''}`}
+                >
+                  <CameraIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600">Klik untuk upload foto</p>
+                  <p className="text-xs text-gray-500 mt-1">JPG, PNG, maksimal 10MB per foto</p>
+                </label>
+              </div>
+            </div>
+
+            {formData.photos.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {formData.photos.map((photo, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={photo}
+                      alt={`Foto ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-lg border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(index)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Reporter Information */}
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Data Pelapor</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="reporterName" className="block text-sm font-medium text-gray-700 mb-2">
+                Nama Lengkap *
+              </label>
+              <input
+                type="text"
+                id="reporterName"
+                name="reporterName"
+                value={formData.reporterName}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50 ${
+                  errors.reporterName ? 'border-red-300' : 'border-gray-300'
+                }`}
+                placeholder="Nama lengkap Anda"
+                readOnly
+              />
+              {errors.reporterName && <p className="mt-1 text-sm text-red-600">{errors.reporterName}</p>}
+            </div>
+
+            <div>
+              <label htmlFor="reporterPosition" className="block text-sm font-medium text-gray-700 mb-2">
+                Mata Pelajaran/Bidang Keahlian *
+              </label>
+              <input
+                type="text"
+                id="reporterPosition"
+                name="reporterPosition"
+                value={formData.reporterPosition}
+                onChange={handleInputChange}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50 ${
+                  errors.reporterPosition ? 'border-red-300' : 'border-gray-300'
+                }`}
+                placeholder="Contoh: Guru Teknik Mesin, Guru Elektronika"
+                readOnly
+              />
+              {errors.reporterPosition && <p className="mt-1 text-sm text-red-600">{errors.reporterPosition}</p>}
+            </div>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <div className="flex justify-end space-x-4">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+            disabled={isSubmitting}
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+          >
+            {isSubmitting && (
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            )}
+            <span>{isSubmitting ? 'Mengirim...' : 'Kirim Laporan'}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
