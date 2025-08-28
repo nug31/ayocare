@@ -6,12 +6,14 @@ import { useAuth } from '../context/AuthContext';
 
 const categories = [
   { value: 'classroom', label: 'Ruang Kelas' },
-  { value: 'workshop-machine', label: 'Bengkel Mesin' },
-  { value: 'workshop-automotive', label: 'Bengkel Otomotif' },
-  { value: 'laboratory', label: 'Laboratorium' },
-  { value: 'workshop-electrical', label: 'Bengkel Elektro' },
-  { value: 'workshop-building', label: 'Bengkel Bangunan' },
+  { value: 'workshop-tkr', label: 'Workshop TKR' },
+  { value: 'workshop-elind', label: 'Workshop ELIND' },
+  { value: 'workshop-listrik', label: 'Workshop Listrik' },
+  { value: 'workshop-tsm', label: 'Workshop TSM' },
+  { value: 'workshop-tki', label: 'Workshop TKI' },
   { value: 'library', label: 'Perpustakaan' },
+  { value: 'teacher-room', label: 'Ruang Guru' },
+  { value: 'podcast', label: 'Podcast' },
   { value: 'canteen', label: 'Kantin' },
   { value: 'toilet', label: 'Toilet' },
   { value: 'corridor', label: 'Koridor' },
@@ -325,7 +327,7 @@ export default function ReportForm() {
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                   errors.location ? 'border-red-300' : 'border-gray-300'
                 }`}
-                placeholder="Contoh: Bengkel Mesin Lantai 2, dekat jendela"
+                placeholder="Contoh: Workshop TKR Lantai 2, dekat area mesin"
               />
               {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location}</p>}
             </div>
