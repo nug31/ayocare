@@ -33,6 +33,7 @@ export default function ReportForm() {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [cameraLoading, setCameraLoading] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -103,23 +104,54 @@ export default function ReportForm() {
     }
 
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'environment', // Use back camera if available
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      });
+      // First try with back camera, then fallback to any camera
+      let mediaStream;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment', // Use back camera if available
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        });
+      } catch (backCameraError) {
+        console.log('Back camera not available, trying any camera...');
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        });
+      }
+      
       setStream(mediaStream);
       setShowCamera(true);
       
-      // Start video stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
+      // Wait a bit for the modal to appear before setting video source
+      setTimeout(() => {
+        if (videoRef.current && mediaStream) {
+          videoRef.current.srcObject = mediaStream;
+          videoRef.current.play().catch(playError => {
+            console.error('Error playing video:', playError);
+          });
+        }
+      }, 100);
+      
     } catch (error) {
       console.error('Error accessing camera:', error);
-      alert('Tidak dapat mengakses kamera. Pastikan browser memiliki izin menggunakan kamera.');
+      let errorMessage = 'Tidak dapat mengakses kamera. ';
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage += 'Izin kamera ditolak. Silakan izinkan akses kamera di browser.';
+      } else if (error.name === 'NotFoundError') {
+        errorMessage += 'Kamera tidak ditemukan di perangkat ini.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage += 'Kamera sedang digunakan oleh aplikasi lain.';
+      } else {
+        errorMessage += 'Pastikan browser memiliki izin menggunakan kamera.';
+      }
+      
+      alert(errorMessage);
     }
   };
 
@@ -159,6 +191,16 @@ export default function ReportForm() {
       }
     }
   };
+
+  // Initialize video stream when camera modal opens
+  useEffect(() => {
+    if (showCamera && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(error => {
+        console.error('Error playing video:', error);
+      });
+    }
+  }, [showCamera, stream]);
 
   // Cleanup camera stream on component unmount
   useEffect(() => {
@@ -522,13 +564,25 @@ export default function ReportForm() {
                   }}
                 />
                 
+                {/* Loading overlay when no stream */}
+                {!stream && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent mx-auto mb-2"></div>
+                      <p className="text-white text-sm">Mengaktifkan kamera...</p>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Camera overlay */}
-                <div className="absolute inset-0 border-2 border-white border-opacity-50 m-4 rounded-lg pointer-events-none">
-                  <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-white"></div>
-                  <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-white"></div>
-                  <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-white"></div>
-                  <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-white"></div>
-                </div>
+                {stream && (
+                  <div className="absolute inset-0 border-2 border-white border-opacity-50 m-4 rounded-lg pointer-events-none">
+                    <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-white"></div>
+                    <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-white"></div>
+                    <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-white"></div>
+                    <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-white"></div>
+                  </div>
+                )}
               </div>
               
               {/* Controls */}
