@@ -68,7 +68,7 @@ export default function Login() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Ayo Care</h1>
             <h2 className="text-xl font-semibold text-gray-700 mb-1">Login Sistem</h2>
             <p className="text-sm text-gray-600">
-              Sistem Pelaporan Keselamatan untuk Admin, User & Guru SMK
+              Sistem pelaporan upnormal
             </p>
           </div>
 
