@@ -288,7 +288,7 @@ export default function ReportForm() {
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                   errors.title ? 'border-red-300' : 'border-gray-300'
                 }`}
-                placeholder="Contoh: Mesin Bubut Bergetar Tidak Normal"
+                placeholder="Contoh: Engsel Pintu Rusak/Patah"
               />
               {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
             </div>
