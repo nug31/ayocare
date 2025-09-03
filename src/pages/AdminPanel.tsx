@@ -202,67 +202,68 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Reports List */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Daftar Laporan</h2>
-              <div className="flex space-x-2">
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Semua Status</option>
-                  {statusOptions.map(status => (
-                    <option key={status.value} value={status.value}>{status.label}</option>
-                  ))}
-                </select>
-                
-                <select
-                  value={filterHandler}
-                  onChange={(e) => setFilterHandler(e.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Semua Handler</option>
-                  <option value={HandlerLevel.USER}>User/Guru</option>
-                  <option value={HandlerLevel.WALAS}>Wali Kelas</option>
-                  <option value={HandlerLevel.GA}>General Affairs</option>
-                  <option value={HandlerLevel.TOP_MANAGEMENT}>Top Management</option>
-                </select>
-                
-                <button
-                  onClick={() => setShowEscalationMatrix(true)}
-                  className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
-                >
-                  <InformationCircleIcon className="h-4 w-4" />
-                  <span>Matriks</span>
-                </button>
-              </div>
+      <div className="space-y-6">
+        {/* Reports List - Full Width on Mobile */}
+        <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 space-y-3 sm:space-y-0">
+            <h2 className="text-lg font-semibold text-gray-900">Daftar Laporan</h2>
+            
+            {/* Filters - Stack on Mobile */}
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full sm:w-auto border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Semua Status</option>
+                {statusOptions.map(status => (
+                  <option key={status.value} value={status.value}>{status.label}</option>
+                ))}
+              </select>
+              
+              <select
+                value={filterHandler}
+                onChange={(e) => setFilterHandler(e.target.value)}
+                className="w-full sm:w-auto border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Semua Handler</option>
+                <option value={HandlerLevel.USER}>User/Guru</option>
+                <option value={HandlerLevel.WALAS}>Wali Kelas</option>
+                <option value={HandlerLevel.GA}>General Affairs</option>
+                <option value={HandlerLevel.TOP_MANAGEMENT}>Top Management</option>
+              </select>
+              
+              <button
+                onClick={() => setShowEscalationMatrix(true)}
+                className="w-full sm:w-auto px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1"
+              >
+                <InformationCircleIcon className="h-4 w-4" />
+                <span>Matriks</span>
+              </button>
             </div>
+          </div>
             
             <div className="space-y-3">
               {filteredReports.map((report) => (
                 <div
                   key={report.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-sm ${
+                  className={`p-3 sm:p-4 border rounded-lg cursor-pointer transition-all hover:shadow-sm ${
                     selectedReport === report.id ? 'ring-2 ring-blue-500 border-blue-200' : 'border-gray-200'
                   }`}
                   onClick={() => setSelectedReport(report.id)}
                 >
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 space-y-2 sm:space-y-0">
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 mb-1">{report.title}</h3>
+                      <h3 className="font-medium text-gray-900 mb-1 pr-2">{report.title}</h3>
                       <p className="text-sm text-gray-600">{report.location}</p>
                     </div>
-                    <div className="flex flex-col items-end space-y-1">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getPriorityColor(report.priority)}`}>
+                    <div className="flex sm:flex-col items-center sm:items-end space-x-2 sm:space-x-0 sm:space-y-1">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full border whitespace-nowrap ${getPriorityColor(report.priority)}`}>
                         {report.priority === 'emergency' ? 'Darurat' : 
                          report.priority === 'high' ? 'Tinggi' : 
                          report.priority === 'medium' ? 'Sedang' : 'Rendah'}
                       </span>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(report.status)}`}>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full border whitespace-nowrap ${getStatusColor(report.status)}`}>
                         {report.status === 'pending' ? 'Menunggu' : 
                          report.status === 'in-progress' ? 'Proses' : 
                          report.status === 'resolved' ? 'Selesai' : 'Tutup'}
@@ -270,21 +271,19 @@ export default function AdminPanel() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{report.reporterName} ({report.reporterPosition})</span>
-                    <span>{formatDate(report.createdAt)}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-gray-500 space-y-1 sm:space-y-0">
+                    <span className="truncate">{report.reporterName} ({report.reporterPosition})</span>
+                    <span className="text-right sm:text-left">{formatDate(report.createdAt)}</span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
 
-        {/* Detail Panel */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl shadow-sm border p-6 sticky top-6">
-            {selectedReportData ? (
-              <div className="space-y-4">
+        {/* Detail Panel - Full Width on Mobile */}
+        {selectedReportData && (
+          <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+            <div className="space-y-4">
                 <div className="border-b pb-4">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Detail Laporan</h3>
                   <p className="text-sm text-gray-600">ID: {selectedReportData.id}</p>
@@ -410,12 +409,12 @@ export default function AdminPanel() {
                 {/* Status Update */}
                 <div>
                   <h5 className="text-sm font-medium text-gray-900 mb-2">Update Status:</h5>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {statusOptions.map(status => (
                       <button
                         key={status.value}
                         onClick={() => updateReportStatus(selectedReportData.id, status.value as any)}
-                        className={`p-2 text-xs font-medium rounded border transition-colors ${
+                        className={`p-2 text-xs font-medium rounded border transition-colors text-center ${
                           selectedReportData.status === status.value
                             ? getStatusColor(status.value)
                             : 'text-gray-600 bg-gray-50 border-gray-200 hover:bg-gray-100'
@@ -457,32 +456,36 @@ export default function AdminPanel() {
                   <p>Dibuat: {formatDate(selectedReportData.createdAt)}</p>
                   <p>Diperbarui: {formatDate(selectedReportData.updatedAt)}</p>
                 </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <UserGroupIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">Pilih laporan untuk melihat detail dan mengelola</p>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
+        
+        {/* No Selection State - Only show on larger screens */}
+        {!selectedReportData && (
+          <div className="hidden sm:block bg-white rounded-xl shadow-sm border p-6">
+            <div className="text-center py-8">
+              <UserGroupIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">Pilih laporan untuk melihat detail dan mengelola</p>
+            </div>
+          </div>
+        )}
       </div>
       
-      {/* Escalation Matrix Modal */}
+      {/* Escalation Matrix Modal - Mobile Optimized */}
       {showEscalationMatrix && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
-            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-gray-900">Matriks Eskalasi</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex-shrink-0 bg-white border-b p-3 sm:p-4 flex items-center justify-between">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Matriks Eskalasi</h3>
               <button
                 onClick={() => setShowEscalationMatrix(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
             </div>
             
-            <div className="p-4">
+            <div className="flex-1 overflow-auto p-3 sm:p-4">
               <EscalationMatrix />
             </div>
           </div>
